@@ -4,21 +4,11 @@
 
 **Goal:** Build a native Node addon that captures selected text from any app via OS accessibility APIs, with a clipboard-simulation fallback, and wire it into the hotkey flow.
 
-**Architecture:** A C++/Obj-C++ native addon (`context-bridge`) exposes three functions via N-API: `getSelectedTextViaAccessibility()`, `simulateCopy()`, and `isAccessibilityGranted()`. A TypeScript orchestration layer in the main process tries accessibility first, falls back to clipboard capture. Platform-specific code is selected at cmake build time. macOS builds and tests now; Windows code is written but compiled later on a Windows device.
+**Architecture:** A C++/Obj-C++ native addon (`context-bridge`) exposes three functions via N-API: `getSelectedTextViaAccessibility()`, `simulateCopy()`, and `isAccessibilityGranted()`. A TypeScript orchestration layer in the main process tries accessibility first, falls back to clipboard capture. Platform-specific code is selected at build time via `binding.gyp` conditions. macOS builds and tests now; Windows code is stubbed until a Windows device is available.
 
-**Tech Stack:** cmake-js, node-addon-api (N-API), Objective-C++ (macOS), C++ (Windows), Electron clipboard API
+**Tech Stack:** node-gyp, node-addon-api (N-API), Objective-C++ (macOS), C++ (Windows), Electron clipboard API
 
 **Note:** Issue #8 (prebuilt binaries) is deferred to M7 (Packaging & Distribution).
-
----
-
-## Prerequisites
-
-cmake must be installed on the system:
-
-```bash
-brew install cmake
-```
 
 ---
 
@@ -26,7 +16,7 @@ brew install cmake
 
 ```
 native/
-├── CMakeLists.txt                     # cmake-js build config
+├── binding.gyp                        # node-gyp build config
 └── src/
     ├── addon.cc                       # N-API entry point, exports 3 functions
     ├── platform.h                     # Cross-platform interface declarations
@@ -56,7 +46,7 @@ src/
 ### Task 1: Native addon build infrastructure
 
 **Files:**
-- Create: `native/CMakeLists.txt`
+- Create: `native/binding.gyp`
 - Create: `native/src/platform.h`
 - Create: `native/src/addon.cc`
 - Create: `native/src/platform_mac.mm`
@@ -65,67 +55,54 @@ src/
 - [ ] **Step 1: Install build dependencies**
 
 ```bash
-npm install -D cmake-js node-addon-api
+npm install -D node-addon-api
 ```
 
-- [ ] **Step 2: Add cmake-js config and scripts to package.json**
+(`node-gyp` ships with npm — no separate install needed.)
 
-Add the following to `package.json` at the top level (alongside "scripts", "dependencies", etc.):
-
-```json
-"cmake-js": {
-  "runtime": "electron"
-}
-```
+- [ ] **Step 2: Add build scripts to package.json**
 
 Add to the `"scripts"` section:
 
 ```json
-"build:native": "cmake-js compile -d native",
-"rebuild:native": "cmake-js rebuild -d native"
+"build:native": "cd native && node-gyp rebuild",
+"rebuild:native": "cd native && node-gyp rebuild"
 ```
 
-- [ ] **Step 3: Create native/CMakeLists.txt**
+- [ ] **Step 3: Create native/binding.gyp**
 
-```cmake
-cmake_minimum_required(VERSION 3.15)
-project(context_bridge)
-
-set(CMAKE_CXX_STANDARD 17)
-
-include_directories(${CMAKE_JS_INC})
-
-# Find node-addon-api headers
-execute_process(
-  COMMAND node -e "console.log(require('node-addon-api').include)"
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
-  OUTPUT_VARIABLE NODE_ADDON_API_DIR
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
-include_directories(${NODE_ADDON_API_DIR})
-
-set(SOURCES src/addon.cc)
-
-if(APPLE)
-  list(APPEND SOURCES src/platform_mac.mm)
-elseif(WIN32)
-  list(APPEND SOURCES src/platform_win.cc)
-endif()
-
-add_library(${PROJECT_NAME} SHARED ${SOURCES} ${CMAKE_JS_SRC})
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
-target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB})
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE NAPI_VERSION=8 NAPI_DISABLE_CPP_EXCEPTIONS)
-
-if(APPLE)
-  target_link_libraries(${PROJECT_NAME}
-    "-framework AppKit"
-    "-framework ApplicationServices"
-    "-framework CoreFoundation")
-elseif(WIN32)
-  target_link_libraries(${PROJECT_NAME} UIAutomationCore Ole32)
-endif()
+```json
+{
+  "targets": [
+    {
+      "target_name": "context_bridge",
+      "cflags!": ["-fno-exceptions"],
+      "cflags_cc!": ["-fno-exceptions"],
+      "sources": ["src/addon.cc"],
+      "include_dirs": [
+        "<!@(node -p \"require('node-addon-api').include\")"
+      ],
+      "defines": ["NAPI_VERSION=8", "NAPI_DISABLE_CPP_EXCEPTIONS"],
+      "conditions": [
+        ["OS=='mac'", {
+          "sources": ["src/platform_mac.mm"],
+          "xcode_settings": {
+            "OTHER_CPLUSPLUSFLAGS": ["-ObjC++", "-std=c++17"],
+            "OTHER_LDFLAGS": [
+              "-framework AppKit",
+              "-framework ApplicationServices",
+              "-framework CoreFoundation"
+            ]
+          }
+        }],
+        ["OS=='win'", {
+          "sources": ["src/platform_win.cc"],
+          "libraries": ["-lUIAutomationCore", "-lOle32"]
+        }]
+      ]
+    }
+  ]
+}
 ```
 
 - [ ] **Step 4: Create native/src/platform.h**
@@ -234,7 +211,7 @@ Expected: File exists
 
 ```bash
 git add native/ package.json package-lock.json .gitignore
-git commit -m "feat: native addon build infrastructure with cmake-js"
+git commit -m "feat: native addon build infrastructure with node-gyp"
 ```
 
 ---
@@ -322,7 +299,7 @@ bool isAccessibilityGranted() {
 - [ ] **Step 2: Rebuild**
 
 ```bash
-npm run rebuild:native
+npm run build:native
 ```
 
 Expected: Build succeeds
@@ -739,7 +716,7 @@ Expected: all 21 tests PASS
 - [ ] **Step 3: Rebuild native + test manually**
 
 ```bash
-npm run rebuild:native && npm run dev
+npm run build:native && npm run dev
 ```
 
 Expected: App launches. Press hotkey → window appears. If accessibility permission is granted and text is selected in another app, the context will be captured and sent to the renderer (visible in DevTools console for now).
@@ -1043,7 +1020,7 @@ git commit -m "feat: accessibility permission detection with onboarding banner"
 
 After completing all 6 tasks, M2 delivers:
 
-- Native Node addon with cmake-js build for macOS (compiles) and Windows (code ready)
+- Native Node addon with node-gyp build for macOS (compiles) and Windows (stubbed)
 - macOS: selected text capture via Accessibility API (AXUIElement)
 - macOS: clipboard fallback via simulated Cmd+C (CGEvent)
 - Windows: stubbed (real implementation pending Windows device, issues #6 + #7)
