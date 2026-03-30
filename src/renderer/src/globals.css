@@ -16,10 +16,12 @@
   --radius-sm: calc(var(--radius-md) - 2px);
 }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
   font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
 }
 
 @keyframes cursorBlink {

@@ -1,11 +1,15 @@
-import { PermissionBanner } from './components/PermissionBanner'
+import { PromptWindow } from './components/PromptWindow'
 
 function App(): React.JSX.Element {
   return (
-    <div className="flex min-h-screen flex-col">
-      <PermissionBanner />
-      <div className="flex flex-1 items-center justify-center">
-        <h1 className="text-2xl font-bold text-foreground">Context AI</h1>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      paddingTop: 80,
+      minHeight: '100vh',
+    }}>
+      <div style={{ width: 560 }}>
+        <PromptWindow />
       </div>
     </div>
   )
