@@ -1,9 +1,27 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
-import { setupIPC } from './ipc'
+import { setupIPC, sendSelectedText } from './ipc'
 import { registerHotkey, unregisterHotkey } from './hotkey'
+import { initContextBridge, getSelectedText } from './context-bridge'
+import type { NativeContextBridge } from './context-bridge'
 
 let promptWindow: BrowserWindow | null = null
+
+function loadNativeAddon(): NativeContextBridge | null {
+  try {
+    const addonPath = join(
+      app.getAppPath(),
+      'native',
+      'build',
+      'Release',
+      'context_bridge.node'
+    )
+    return require(addonPath)
+  } catch (err) {
+    console.warn('[context-bridge] Native addon not available:', (err as Error).message)
+    return null
+  }
+}
 
 function createPromptWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -34,22 +52,28 @@ function createPromptWindow(): BrowserWindow {
   return window
 }
 
-function togglePromptWindow(): void {
+async function onHotkeyPressed(): Promise<void> {
   if (!promptWindow) return
 
-  if (promptWindow.isVisible()) {
-    promptWindow.hide()
-  } else {
-    promptWindow.show()
-    promptWindow.focus()
+  const result = await getSelectedText()
+
+  promptWindow.show()
+  promptWindow.focus()
+
+  if (result) {
+    sendSelectedText(promptWindow, result.text, result.method)
   }
 }
 
 app.whenReady().then(() => {
+  initContextBridge(loadNativeAddon())
+
   promptWindow = createPromptWindow()
   setupIPC(promptWindow)
 
-  const success = registerHotkey('CmdOrCtrl+Shift+Space', togglePromptWindow)
+  const success = registerHotkey('CmdOrCtrl+Shift+Space', () => {
+    onHotkeyPressed()
+  })
   if (!success) {
     console.error('Failed to register global hotkey CmdOrCtrl+Shift+Space')
   }
