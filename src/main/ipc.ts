@@ -1,4 +1,4 @@
-import { ipcMain, type BrowserWindow } from 'electron'
+import { ipcMain, systemPreferences, type BrowserWindow } from 'electron'
 import { IPC, type PromptSubmission, type OutputAction } from '../shared/ipc'
 
 export function setupIPC(promptWindow: BrowserWindow): void {
@@ -10,6 +10,12 @@ export function setupIPC(promptWindow: BrowserWindow): void {
   ipcMain.on(IPC.OUTPUT_ACTION, (_event, action: OutputAction) => {
     // Handled in M3 (Prompt Window output actions)
     console.log('[ipc] output action:', action)
+  })
+
+  ipcMain.on(IPC.PERMISSION_REQUEST, () => {
+    if (process.platform === 'darwin') {
+      systemPreferences.isTrustedAccessibilityClient(true)
+    }
   })
 }
 
@@ -31,4 +37,8 @@ export function sendStreamDone(window: BrowserWindow): void {
 
 export function sendStreamError(window: BrowserWindow, message: string): void {
   window.webContents.send(IPC.STREAM_ERROR, { message })
+}
+
+export function sendPermissionStatus(window: BrowserWindow, accessibility: boolean): void {
+  window.webContents.send(IPC.PERMISSION_STATUS, { accessibility })
 }

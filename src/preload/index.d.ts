@@ -3,7 +3,8 @@ import type {
   PromptSubmission,
   StreamToken,
   StreamError,
-  OutputAction
+  OutputAction,
+  PermissionStatus
 } from '../shared/ipc'
 
 export interface ContextAIAPI {
@@ -13,6 +14,8 @@ export interface ContextAIAPI {
   onStreamDone(callback: () => void): () => void
   onStreamError(callback: (error: StreamError) => void): () => void
   executeOutputAction(action: OutputAction): void
+  onPermissionStatus(callback: (status: PermissionStatus) => void): () => void
+  requestAccessibilityPermission(): void
 }
 
 declare global {

@@ -5,6 +5,8 @@ export const IPC = {
   STREAM_DONE: 'stream:done',
   STREAM_ERROR: 'stream:error',
   OUTPUT_ACTION: 'output:execute',
+  PERMISSION_STATUS: 'permission:status',
+  PERMISSION_REQUEST: 'permission:request',
 } as const
 
 export interface SelectedText {
@@ -27,3 +29,7 @@ export interface StreamError {
 }
 
 export type OutputAction = 'display' | 'copy' | 'replace'
+
+export interface PermissionStatus {
+  accessibility: boolean
+}

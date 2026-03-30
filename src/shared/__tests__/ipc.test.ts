@@ -5,7 +5,8 @@ import {
   type PromptSubmission,
   type StreamToken,
   type StreamError,
-  type OutputAction
+  type OutputAction,
+  type PermissionStatus
 } from '../ipc'
 
 describe('IPC channels', () => {
@@ -16,6 +17,8 @@ describe('IPC channels', () => {
     expect(IPC.STREAM_DONE).toBe('stream:done')
     expect(IPC.STREAM_ERROR).toBe('stream:error')
     expect(IPC.OUTPUT_ACTION).toBe('output:execute')
+    expect(IPC.PERMISSION_STATUS).toBe('permission:status')
+    expect(IPC.PERMISSION_REQUEST).toBe('permission:request')
   })
 
   it('SelectedText has required shape', () => {
@@ -65,5 +68,10 @@ describe('IPC channels', () => {
     expect(actions).toContain('display')
     expect(actions).toContain('copy')
     expect(actions).toContain('replace')
+  })
+
+  it('PermissionStatus has required shape', () => {
+    const status: PermissionStatus = { accessibility: true }
+    expect(status.accessibility).toBe(true)
   })
 })

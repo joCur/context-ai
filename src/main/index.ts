@@ -1,11 +1,26 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
-import { setupIPC, sendSelectedText } from './ipc'
+import { setupIPC, sendSelectedText, sendPermissionStatus } from './ipc'
 import { registerHotkey, unregisterHotkey } from './hotkey'
-import { initContextBridge, getSelectedText } from './context-bridge'
+import { initContextBridge, getSelectedText, checkAccessibilityPermission } from './context-bridge'
 import type { NativeContextBridge } from './context-bridge'
 
 let promptWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+
+function getTrayIconPath(): string {
+  if (app.isPackaged) {
+    return join(process.resourcesPath, 'trayTemplate.png')
+  }
+  return join(__dirname, '../../resources/trayTemplate.png')
+}
+
+function getIconPath(): string {
+  if (app.isPackaged) {
+    return join(process.resourcesPath, 'icon.png')
+  }
+  return join(__dirname, '../../resources/icon.png')
+}
 
 function loadNativeAddon(): NativeContextBridge | null {
   try {
@@ -33,6 +48,7 @@ function createPromptWindow(): BrowserWindow {
     resizable: false,
     skipTaskbar: true,
     backgroundColor: '#0a0a0f',
+    icon: getIconPath(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -52,9 +68,19 @@ function createPromptWindow(): BrowserWindow {
   return window
 }
 
+function sendCurrentPermissionStatus(): void {
+  if (!promptWindow) return
+  if (process.platform !== 'darwin') {
+    sendPermissionStatus(promptWindow, true)
+    return
+  }
+  sendPermissionStatus(promptWindow, checkAccessibilityPermission())
+}
+
 async function onHotkeyPressed(): Promise<void> {
   if (!promptWindow) return
 
+  sendCurrentPermissionStatus()
   const result = await getSelectedText()
 
   promptWindow.show()
@@ -70,6 +96,27 @@ app.whenReady().then(() => {
 
   promptWindow = createPromptWindow()
   setupIPC(promptWindow)
+
+  // Set dock icon on macOS
+  if (process.platform === 'darwin') {
+    const dockIcon = nativeImage.createFromPath(getIconPath())
+    app.dock.setIcon(dockIcon)
+  }
+
+  // Create tray icon — use Template naming convention for macOS auto-colorization
+  const trayIcon = nativeImage.createFromPath(getTrayIconPath())
+  trayIcon.setTemplateImage(true)
+  tray = new Tray(trayIcon)
+  tray.setToolTip('Context AI')
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: 'Open Context AI', click: () => onHotkeyPressed() },
+    { type: 'separator' },
+    { label: 'Quit', click: () => app.quit() }
+  ]))
+
+  promptWindow.webContents.on('did-finish-load', () => {
+    sendCurrentPermissionStatus()
+  })
 
   const success = registerHotkey('CmdOrCtrl+Shift+Space', () => {
     onHotkeyPressed()

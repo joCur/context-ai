@@ -5,7 +5,8 @@ import type {
   PromptSubmission,
   StreamToken,
   StreamError,
-  OutputAction
+  OutputAction,
+  PermissionStatus
 } from '../shared/ipc'
 
 const api = {
@@ -42,7 +43,18 @@ const api = {
 
   executeOutputAction(action: OutputAction): void {
     ipcRenderer.send(IPC.OUTPUT_ACTION, action)
-  }
+  },
+
+  onPermissionStatus(callback: (status: PermissionStatus) => void): () => void {
+    const handler = (_event: Electron.IpcRendererEvent, status: PermissionStatus): void =>
+      callback(status)
+    ipcRenderer.on(IPC.PERMISSION_STATUS, handler)
+    return () => ipcRenderer.removeListener(IPC.PERMISSION_STATUS, handler)
+  },
+
+  requestAccessibilityPermission(): void {
+    ipcRenderer.send(IPC.PERMISSION_REQUEST)
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)
