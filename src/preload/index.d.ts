@@ -13,9 +13,10 @@ export interface ContextAIAPI {
   onStreamToken(callback: (data: StreamToken) => void): () => void
   onStreamDone(callback: () => void): () => void
   onStreamError(callback: (error: StreamError) => void): () => void
-  executeOutputAction(action: OutputAction): void
+  executeOutputAction(action: OutputAction, responseText?: string): void
   onPermissionStatus(callback: (status: PermissionStatus) => void): () => void
   requestAccessibilityPermission(): void
+  dismiss(): void
 }
 
 declare global {

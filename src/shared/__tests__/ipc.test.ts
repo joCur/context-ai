@@ -19,6 +19,7 @@ describe('IPC channels', () => {
     expect(IPC.OUTPUT_ACTION).toBe('output:execute')
     expect(IPC.PERMISSION_STATUS).toBe('permission:status')
     expect(IPC.PERMISSION_REQUEST).toBe('permission:request')
+    expect(IPC.WINDOW_DISMISS).toBe('window:dismiss')
   })
 
   it('SelectedText has required shape', () => {

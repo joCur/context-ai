@@ -7,6 +7,7 @@ export const IPC = {
   OUTPUT_ACTION: 'output:execute',
   PERMISSION_STATUS: 'permission:status',
   PERMISSION_REQUEST: 'permission:request',
+  WINDOW_DISMISS: 'window:dismiss',
 } as const
 
 export interface SelectedText {

@@ -40,15 +40,15 @@ function loadNativeAddon(): NativeContextBridge | null {
 
 function createPromptWindow(): BrowserWindow {
   const window = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 560,
+    height: 600,
     show: false,
     frame: false,
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: true,
-    backgroundColor: '#0a0a0f',
-    icon: getIconPath(),
+    transparent: true,
+    hasShadow: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false

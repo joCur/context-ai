@@ -1,4 +1,4 @@
-import { ipcMain, systemPreferences, type BrowserWindow } from 'electron'
+import { ipcMain, systemPreferences, clipboard, type BrowserWindow } from 'electron'
 import { IPC, type PromptSubmission, type OutputAction } from '../shared/ipc'
 
 export function setupIPC(promptWindow: BrowserWindow): void {
@@ -7,9 +7,18 @@ export function setupIPC(promptWindow: BrowserWindow): void {
     console.log('[ipc] prompt submitted:', submission.prompt)
   })
 
-  ipcMain.on(IPC.OUTPUT_ACTION, (_event, action: OutputAction) => {
-    // Handled in M3 (Prompt Window output actions)
-    console.log('[ipc] output action:', action)
+  ipcMain.on(IPC.OUTPUT_ACTION, (_event, action: OutputAction, responseText?: string) => {
+    if (action === 'copy' && responseText) {
+      clipboard.writeText(responseText)
+      promptWindow.hide()
+    } else if (action === 'replace' && responseText) {
+      clipboard.writeText(responseText)
+      promptWindow.hide()
+    }
+  })
+
+  ipcMain.on(IPC.WINDOW_DISMISS, () => {
+    promptWindow.hide()
   })
 
   ipcMain.on(IPC.PERMISSION_REQUEST, () => {

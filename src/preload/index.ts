@@ -41,8 +41,8 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.STREAM_ERROR, handler)
   },
 
-  executeOutputAction(action: OutputAction): void {
-    ipcRenderer.send(IPC.OUTPUT_ACTION, action)
+  executeOutputAction(action: OutputAction, responseText?: string): void {
+    ipcRenderer.send(IPC.OUTPUT_ACTION, action, responseText)
   },
 
   onPermissionStatus(callback: (status: PermissionStatus) => void): () => void {
@@ -54,6 +54,10 @@ const api = {
 
   requestAccessibilityPermission(): void {
     ipcRenderer.send(IPC.PERMISSION_REQUEST)
+  },
+
+  dismiss(): void {
+    ipcRenderer.send(IPC.WINDOW_DISMISS)
   },
 }
 
