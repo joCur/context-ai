@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
+import { setupIPC } from './ipc'
 
 let promptWindow: BrowserWindow | null = null
 
@@ -30,6 +31,7 @@ function createPromptWindow(): BrowserWindow {
 
 app.whenReady().then(() => {
   promptWindow = createPromptWindow()
+  setupIPC(promptWindow)
   promptWindow.show()
 })
 

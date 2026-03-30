@@ -1,3 +1,48 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
+import { IPC } from '../shared/ipc'
+import type {
+  SelectedText,
+  PromptSubmission,
+  StreamToken,
+  StreamError,
+  OutputAction
+} from '../shared/ipc'
 
-contextBridge.exposeInMainWorld('api', {})
+const api = {
+  onSelectedText(callback: (data: SelectedText) => void): () => void {
+    const handler = (_event: Electron.IpcRendererEvent, data: SelectedText): void =>
+      callback(data)
+    ipcRenderer.on(IPC.SELECTED_TEXT, handler)
+    return () => ipcRenderer.removeListener(IPC.SELECTED_TEXT, handler)
+  },
+
+  submitPrompt(submission: PromptSubmission): void {
+    ipcRenderer.send(IPC.PROMPT_SUBMIT, submission)
+  },
+
+  onStreamToken(callback: (data: StreamToken) => void): () => void {
+    const handler = (_event: Electron.IpcRendererEvent, data: StreamToken): void =>
+      callback(data)
+    ipcRenderer.on(IPC.STREAM_TOKEN, handler)
+    return () => ipcRenderer.removeListener(IPC.STREAM_TOKEN, handler)
+  },
+
+  onStreamDone(callback: () => void): () => void {
+    const handler = (): void => callback()
+    ipcRenderer.on(IPC.STREAM_DONE, handler)
+    return () => ipcRenderer.removeListener(IPC.STREAM_DONE, handler)
+  },
+
+  onStreamError(callback: (error: StreamError) => void): () => void {
+    const handler = (_event: Electron.IpcRendererEvent, error: StreamError): void =>
+      callback(error)
+    ipcRenderer.on(IPC.STREAM_ERROR, handler)
+    return () => ipcRenderer.removeListener(IPC.STREAM_ERROR, handler)
+  },
+
+  executeOutputAction(action: OutputAction): void {
+    ipcRenderer.send(IPC.OUTPUT_ACTION, action)
+  }
+}
+
+contextBridge.exposeInMainWorld('api', api)
