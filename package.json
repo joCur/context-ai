@@ -8,7 +8,29 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:native": "cd native && node-gyp rebuild",
+    "rebuild:native": "cd native && node-gyp rebuild"
+  },
+  "build": {
+    "appId": "com.context-ai.app",
+    "productName": "Context AI",
+    "icon": "resources/icon.png",
+    "mac": {
+      "icon": "resources/icon.icns"
+    },
+    "win": {
+      "icon": "resources/icon.ico"
+    },
+    "linux": {
+      "icon": "resources/icon.png"
+    },
+    "extraResources": [
+      {
+        "from": "resources/icon.png",
+        "to": "icon.png"
+      }
+    ]
   },
   "license": "UNLICENSED",
   "private": true,
@@ -25,6 +47,7 @@
     "@vitejs/plugin-react": "^5.2.0",
     "electron": "^41.1.0",
     "electron-vite": "^5.0.0",
+    "node-addon-api": "^8.7.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
     "vite": "^7.3.1",

@@ -1,0 +1,32 @@
+#include <napi.h>
+#include "platform.h"
+
+Napi::Value GetSelectedTextViaAccessibility(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  std::string text = context_bridge::getSelectedTextViaAccessibility();
+  if (text.empty()) {
+    return env.Null();
+  }
+  return Napi::String::New(env, text);
+}
+
+Napi::Value SimulateCopy(const Napi::CallbackInfo& info) {
+  context_bridge::simulateCopy();
+  return info.Env().Undefined();
+}
+
+Napi::Value IsAccessibilityGranted(const Napi::CallbackInfo& info) {
+  return Napi::Boolean::New(info.Env(), context_bridge::isAccessibilityGranted());
+}
+
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set("getSelectedTextViaAccessibility",
+              Napi::Function::New(env, GetSelectedTextViaAccessibility));
+  exports.Set("simulateCopy",
+              Napi::Function::New(env, SimulateCopy));
+  exports.Set("isAccessibilityGranted",
+              Napi::Function::New(env, IsAccessibilityGranted));
+  return exports;
+}
+
+NODE_API_MODULE(context_bridge, Init)
