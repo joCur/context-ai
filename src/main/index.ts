@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { setupIPC } from './ipc'
+import { registerHotkey, unregisterHotkey } from './hotkey'
 
 let promptWindow: BrowserWindow | null = null
 
@@ -26,13 +27,36 @@ function createPromptWindow(): BrowserWindow {
     window.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
+  window.on('blur', () => {
+    window.hide()
+  })
+
   return window
+}
+
+function togglePromptWindow(): void {
+  if (!promptWindow) return
+
+  if (promptWindow.isVisible()) {
+    promptWindow.hide()
+  } else {
+    promptWindow.show()
+    promptWindow.focus()
+  }
 }
 
 app.whenReady().then(() => {
   promptWindow = createPromptWindow()
   setupIPC(promptWindow)
-  promptWindow.show()
+
+  const success = registerHotkey('CmdOrCtrl+Shift+Space', togglePromptWindow)
+  if (!success) {
+    console.error('Failed to register global hotkey CmdOrCtrl+Shift+Space')
+  }
+})
+
+app.on('will-quit', () => {
+  unregisterHotkey()
 })
 
 app.on('window-all-closed', () => {
