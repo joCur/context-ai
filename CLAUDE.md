@@ -120,11 +120,7 @@ agent-browser click @e1              # Click an element
 agent-browser fill @e2 "text"        # Fill an input
 ```
 
-Re-snapshot after any page change. On Windows, launch manually with:
-
-```bash
-REMOTE_DEBUGGING_PORT=9222 npx electron-vite dev -- --no-sandbox
-```
+Re-snapshot after any page change.
 
 ## Git Worktrees
 
