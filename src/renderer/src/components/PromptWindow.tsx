@@ -9,8 +9,10 @@ import { ActionBar } from './ActionBar'
 import { PermissionBanner } from './PermissionBanner'
 
 export function PromptWindow(): React.JSX.Element {
-  const { state, quickActions, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection } =
+  const { state, quickActions, settings, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection } =
     usePromptState()
+
+  const accent = settings.accentColor || '#00d4ff'
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -48,12 +50,14 @@ export function PromptWindow(): React.JSX.Element {
 
   return (
     <div style={{
+      width: settings.promptWindowWidth || 560,
       background: '#0a0a0f',
-      border: '1px solid rgba(0,212,255,0.15)',
+      border: `1px solid ${accent}26`,
       borderRadius: 16,
-      boxShadow: '0 0 30px rgba(0,212,255,0.06), 0 8px 32px rgba(0,0,0,0.5)',
+      boxShadow: `0 0 30px ${accent}0f, 0 8px 32px rgba(0,0,0,0.5)`,
       overflow: 'hidden',
       fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: settings.fontSize || 14,
       maxHeight: '80vh',
       display: 'flex',
       flexDirection: 'column',

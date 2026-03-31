@@ -101,46 +101,32 @@ export function GeneralTab({ settings, onUpdate }: GeneralTabProps): React.JSX.E
       </div>
 
       {/* Default Output Action */}
-      <div style={sectionStyle}>
-        <label style={labelStyle}>Default Output Action</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {outputOptions.map((opt) => (
-            <label
-              key={opt.value}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: 8,
-                background:
-                  settings.defaultOutputAction === opt.value
-                    ? 'rgba(0,212,255,0.06)'
-                    : 'transparent',
-                border: `1px solid ${
-                  settings.defaultOutputAction === opt.value
-                    ? 'rgba(0,212,255,0.2)'
-                    : 'transparent'
-                }`,
-                transition: 'background 150ms, border-color 150ms',
-              }}
-            >
-              <input
-                type="radio"
-                name="outputAction"
-                value={opt.value}
-                checked={settings.defaultOutputAction === opt.value}
-                onChange={() => onUpdate('defaultOutputAction', opt.value)}
-                style={{ accentColor: '#00d4ff' }}
-              />
-              <div>
-                <div style={{ fontSize: 13, color: '#fafafa' }}>{opt.label}</div>
-                <div style={{ fontSize: 12, color: '#71717a' }}>{opt.description}</div>
-              </div>
-            </label>
-          ))}
+      <div style={{ ...toggleContainerStyle, borderBottom: 'none', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 13, color: '#fafafa' }}>Default Output Action</div>
+          <div style={descriptionStyle}>What happens after the AI responds</div>
         </div>
+        <select
+          value={settings.defaultOutputAction}
+          onChange={(e) => onUpdate('defaultOutputAction', e.target.value as OutputAction)}
+          style={{
+            padding: '8px 12px',
+            background: '#1a1a2e',
+            border: '1px solid #27272a',
+            borderRadius: 8,
+            color: '#fafafa',
+            fontSize: 13,
+            fontFamily: 'inherit',
+            outline: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          {outputOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Auto-dismiss */}

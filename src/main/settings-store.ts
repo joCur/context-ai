@@ -1,4 +1,5 @@
-import Store from 'electron-store'
+import ElectronStore from 'electron-store'
+const Store = (ElectronStore as any).default || ElectronStore
 import { safeStorage } from 'electron'
 import { DEFAULT_SETTINGS, type AppSettings } from '../shared/settings-types'
 

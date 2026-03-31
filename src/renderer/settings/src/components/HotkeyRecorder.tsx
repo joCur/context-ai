@@ -54,6 +54,11 @@ export function HotkeyRecorder({ value, onChange }: HotkeyRecorderProps): React.
       e.preventDefault()
       e.stopPropagation()
 
+      if (e.key === 'Escape') {
+        setRecording(false)
+        return
+      }
+
       const combo = electronKeyName(e)
       if (combo) {
         onChange(combo)

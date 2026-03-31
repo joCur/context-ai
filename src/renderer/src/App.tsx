@@ -8,9 +8,7 @@ function App(): React.JSX.Element {
       paddingTop: 80,
       minHeight: '100vh',
     }}>
-      <div style={{ width: 560 }}>
-        <PromptWindow />
-      </div>
+      <PromptWindow />
     </div>
   )
 }

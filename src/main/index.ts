@@ -109,8 +109,16 @@ function createSettingsWindow(): void {
     settingsWindow.loadFile(join(__dirname, '../renderer/settings/index.html'))
   }
 
+  // Show dock icon while settings is open
+  if (process.platform === 'darwin') {
+    app.dock.show()
+  }
+
   settingsWindow.on('closed', () => {
     settingsWindow = null
+    if (process.platform === 'darwin') {
+      app.dock.hide()
+    }
   })
 }
 
@@ -190,10 +198,9 @@ app.whenReady().then(() => {
 
   setupSettingsIPC(patchedStore, getAllWindows)
 
-  // Set dock icon on macOS
+  // Hide dock icon on macOS — this is a tray app
   if (process.platform === 'darwin') {
-    const dockIcon = nativeImage.createFromPath(getIconPath())
-    app.dock.setIcon(dockIcon)
+    app.dock.hide()
   }
 
   // Create tray icon — use Template naming convention for macOS auto-colorization

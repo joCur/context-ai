@@ -1,5 +1,11 @@
 import type { AppSettings } from '../../../../../shared/settings-types'
 
+const APPEARANCE_DEFAULTS = {
+  accentColor: '#00d4ff',
+  promptWindowWidth: 560,
+  fontSize: 14,
+}
+
 interface AppearanceTabProps {
   settings: AppSettings
   onUpdate: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void
@@ -30,6 +36,17 @@ const descriptionStyle: React.CSSProperties = {
   marginTop: 4,
 }
 
+const resetButtonStyle: React.CSSProperties = {
+  padding: '4px 10px',
+  background: 'transparent',
+  border: '1px solid #27272a',
+  borderRadius: 6,
+  color: '#71717a',
+  fontSize: 11,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+}
+
 const inputStyle: React.CSSProperties = {
   padding: '8px 12px',
   background: '#1a1a2e',
@@ -45,11 +62,33 @@ const inputStyle: React.CSSProperties = {
 export function AppearanceTab({ settings, onUpdate }: AppearanceTabProps): React.JSX.Element {
   return (
     <div>
-      <h2 style={headingStyle}>Appearance</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <h2 style={{ ...headingStyle, marginBottom: 0 }}>Appearance</h2>
+        <button
+          onClick={() => {
+            onUpdate('accentColor', APPEARANCE_DEFAULTS.accentColor)
+            onUpdate('promptWindowWidth', APPEARANCE_DEFAULTS.promptWindowWidth)
+            onUpdate('fontSize', APPEARANCE_DEFAULTS.fontSize)
+          }}
+          style={{
+            ...resetButtonStyle,
+            color: '#a1a1aa',
+          }}
+        >
+          Reset All to Defaults
+        </button>
+      </div>
 
       {/* Accent Color */}
       <div style={sectionStyle}>
-        <label style={labelStyle}>Accent Color</label>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Accent Color</label>
+          {settings.accentColor !== APPEARANCE_DEFAULTS.accentColor && (
+            <button onClick={() => onUpdate('accentColor', APPEARANCE_DEFAULTS.accentColor)} style={resetButtonStyle}>
+              Reset
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <input
             type="color"
@@ -97,9 +136,16 @@ export function AppearanceTab({ settings, onUpdate }: AppearanceTabProps): React
 
       {/* Prompt Window Width */}
       <div style={sectionStyle}>
-        <label style={labelStyle}>
-          Prompt Window Width: {settings.promptWindowWidth}px
-        </label>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>
+            Prompt Window Width: {settings.promptWindowWidth}px
+          </label>
+          {settings.promptWindowWidth !== APPEARANCE_DEFAULTS.promptWindowWidth && (
+            <button onClick={() => onUpdate('promptWindowWidth', APPEARANCE_DEFAULTS.promptWindowWidth)} style={resetButtonStyle}>
+              Reset
+            </button>
+          )}
+        </div>
         <input
           type="range"
           min={400}
@@ -125,9 +171,16 @@ export function AppearanceTab({ settings, onUpdate }: AppearanceTabProps): React
 
       {/* Font Size */}
       <div style={sectionStyle}>
-        <label style={labelStyle}>
-          Font Size: {settings.fontSize}px
-        </label>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>
+            Font Size: {settings.fontSize}px
+          </label>
+          {settings.fontSize !== APPEARANCE_DEFAULTS.fontSize && (
+            <button onClick={() => onUpdate('fontSize', APPEARANCE_DEFAULTS.fontSize)} style={resetButtonStyle}>
+              Reset
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <input
             type="range"
