@@ -20,6 +20,10 @@ describe('IPC channels', () => {
     expect(IPC.PERMISSION_STATUS).toBe('permission:status')
     expect(IPC.PERMISSION_REQUEST).toBe('permission:request')
     expect(IPC.WINDOW_DISMISS).toBe('window:dismiss')
+    expect(IPC.SETTINGS_GET).toBe('settings:get')
+    expect(IPC.SETTINGS_SET).toBe('settings:set')
+    expect(IPC.SETTINGS_CHANGED).toBe('settings:changed')
+    expect(IPC.SETTINGS_FETCH_MODELS).toBe('settings:fetch-models')
   })
 
   it('SelectedText has required shape', () => {

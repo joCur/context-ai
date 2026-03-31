@@ -9,6 +9,10 @@ export const IPC = {
   PERMISSION_REQUEST: 'permission:request',
   WINDOW_DISMISS: 'window:dismiss',
   WINDOW_RESET: 'window:reset',
+  SETTINGS_GET: 'settings:get',
+  SETTINGS_SET: 'settings:set',
+  SETTINGS_CHANGED: 'settings:changed',
+  SETTINGS_FETCH_MODELS: 'settings:fetch-models',
 } as const
 
 export interface SelectedText {
