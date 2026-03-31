@@ -16,7 +16,11 @@ Napi::Value SimulateCopy(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value IsAccessibilityGranted(const Napi::CallbackInfo& info) {
-  return Napi::Boolean::New(info.Env(), context_bridge::isAccessibilityGranted());
+  bool prompt = false;
+  if (info.Length() > 0 && info[0].IsBoolean()) {
+    prompt = info[0].As<Napi::Boolean>().Value();
+  }
+  return Napi::Boolean::New(info.Env(), context_bridge::isAccessibilityGranted(prompt));
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {

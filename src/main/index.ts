@@ -68,23 +68,26 @@ function createPromptWindow(): BrowserWindow {
   return window
 }
 
-function sendCurrentPermissionStatus(): void {
+function checkAndSendPermissionStatus(prompt: boolean): void {
   if (!promptWindow) return
   if (process.platform !== 'darwin') {
     sendPermissionStatus(promptWindow, true)
     return
   }
-  sendPermissionStatus(promptWindow, checkAccessibilityPermission())
+  const granted = checkAccessibilityPermission(prompt)
+  sendPermissionStatus(promptWindow, granted)
 }
 
 async function onHotkeyPressed(): Promise<void> {
   if (!promptWindow) return
 
-  sendCurrentPermissionStatus()
   const result = await getSelectedText()
 
   promptWindow.show()
   promptWindow.focus()
+
+  // Check permission without prompting — just update the banner
+  checkAndSendPermissionStatus(false)
 
   if (result) {
     sendSelectedText(promptWindow, result.text, result.method)
@@ -114,8 +117,11 @@ app.whenReady().then(() => {
     { label: 'Quit', click: () => app.quit() }
   ]))
 
+  // Check permission on startup with prompt — window is hidden so dialog won't be covered
+  checkAndSendPermissionStatus(true)
+
   promptWindow.webContents.on('did-finish-load', () => {
-    sendCurrentPermissionStatus()
+    checkAndSendPermissionStatus(false)
   })
 
   const success = registerHotkey('CmdOrCtrl+Shift+Space', () => {

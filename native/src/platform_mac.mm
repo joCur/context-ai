@@ -61,7 +61,11 @@ void simulateCopy() {
   CFRelease(source);
 }
 
-bool isAccessibilityGranted() {
+bool isAccessibilityGranted(bool prompt) {
+  if (prompt) {
+    NSDictionary* options = @{(__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES};
+    return AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
+  }
   return AXIsProcessTrusted();
 }
 

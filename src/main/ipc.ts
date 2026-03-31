@@ -1,5 +1,6 @@
-import { ipcMain, systemPreferences, clipboard, type BrowserWindow } from 'electron'
+import { ipcMain, clipboard, type BrowserWindow } from 'electron'
 import { IPC, type PromptSubmission, type OutputAction } from '../shared/ipc'
+import { checkAccessibilityPermission } from './context-bridge'
 
 export function setupIPC(promptWindow: BrowserWindow): void {
   ipcMain.on(IPC.PROMPT_SUBMIT, (_event, submission: PromptSubmission) => {
@@ -23,7 +24,8 @@ export function setupIPC(promptWindow: BrowserWindow): void {
 
   ipcMain.on(IPC.PERMISSION_REQUEST, () => {
     if (process.platform === 'darwin') {
-      systemPreferences.isTrustedAccessibilityClient(true)
+      promptWindow.hide()
+      checkAccessibilityPermission(true)
     }
   })
 }

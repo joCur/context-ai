@@ -9,7 +9,7 @@ std::string getSelectedTextViaAccessibility();
 // Simulates Cmd+C (macOS) or Ctrl+C (Windows) in the frontmost app.
 void simulateCopy();
 
-// Returns true if the process has accessibility permission (always true on Windows).
-bool isAccessibilityGranted();
+// Checks accessibility permission. If prompt is true, shows the macOS system dialog.
+bool isAccessibilityGranted(bool prompt = false);
 
 } // namespace context_bridge

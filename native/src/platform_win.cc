@@ -15,7 +15,7 @@ std::string getSelectedTextViaAccessibility() {
 void simulateCopy() {
 }
 
-bool isAccessibilityGranted() {
+bool isAccessibilityGranted(bool) {
   return true;
 }
 

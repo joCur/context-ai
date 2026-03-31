@@ -4,7 +4,7 @@ import type { SelectedText } from '../shared/ipc'
 export interface NativeContextBridge {
   getSelectedTextViaAccessibility(): string | null
   simulateCopy(): void
-  isAccessibilityGranted(): boolean
+  isAccessibilityGranted(prompt?: boolean): boolean
 }
 
 let native: NativeContextBridge | null = null
@@ -40,6 +40,6 @@ export async function getSelectedText(): Promise<SelectedText | null> {
   return null
 }
 
-export function checkAccessibilityPermission(): boolean {
-  return native?.isAccessibilityGranted() ?? false
+export function checkAccessibilityPermission(prompt = false): boolean {
+  return native?.isAccessibilityGranted(prompt) ?? false
 }
