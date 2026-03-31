@@ -14,6 +14,7 @@ export const IPC = {
   SETTINGS_SET: 'settings:set',
   SETTINGS_CHANGED: 'settings:changed',
   SETTINGS_FETCH_MODELS: 'settings:fetch-models',
+  WINDOW_OPEN_SETTINGS: 'window:open-settings',
 } as const
 
 export interface SelectedText {

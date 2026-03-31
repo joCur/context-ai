@@ -7,6 +7,7 @@ import { SubmittedPrompt } from './SubmittedPrompt'
 import { ResponseArea } from './ResponseArea'
 import { ActionBar } from './ActionBar'
 import { PermissionBanner } from './PermissionBanner'
+import { WelcomeScreen } from './WelcomeScreen'
 
 export function PromptWindow(): React.JSX.Element {
   const { state, quickActions, settings, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection } =
@@ -53,6 +54,29 @@ export function PromptWindow(): React.JSX.Element {
     return () => observer.disconnect()
   }, [])
 
+  const shellStyle = {
+    width: settings.promptWindowWidth || 560,
+    background: '#0a0a0f',
+    border: `1px solid ${accent}26`,
+    borderRadius: 16,
+    boxShadow: `0 0 30px ${accent}0f, 0 8px 32px rgba(0,0,0,0.5)`,
+    overflow: 'hidden',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: settings.fontSize || 14,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    animation: 'promptFadeIn 150ms ease-out',
+  }
+
+  if (!settings.apiKey) {
+    return (
+      <div ref={containerRef} style={shellStyle}>
+        <PermissionBanner />
+        <WelcomeScreen onSetupApiKey={() => window.api.openSettings()} />
+      </div>
+    )
+  }
+
   const showContextBar = state.phase === 'context' ||
     ((state.phase === 'streaming' || state.phase === 'complete') && state.contextText !== null)
 
@@ -63,19 +87,7 @@ export function PromptWindow(): React.JSX.Element {
   const showActionBar = state.phase === 'complete'
 
   return (
-    <div ref={containerRef} style={{
-      width: settings.promptWindowWidth || 560,
-      background: '#0a0a0f',
-      border: `1px solid ${accent}26`,
-      borderRadius: 16,
-      boxShadow: `0 0 30px ${accent}0f, 0 8px 32px rgba(0,0,0,0.5)`,
-      overflow: 'hidden',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      fontSize: settings.fontSize || 14,
-      display: 'flex',
-      flexDirection: 'column',
-      animation: 'promptFadeIn 150ms ease-out',
-    }}>
+    <div ref={containerRef} style={shellStyle}>
       <PermissionBanner />
 
       {showContextBar && (

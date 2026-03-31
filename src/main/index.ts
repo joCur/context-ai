@@ -196,6 +196,10 @@ app.whenReady().then(() => {
   promptWindow = createPromptWindow()
   setupIPC(promptWindow, settingsStore)
 
+  ipcMain.on('window:open-settings', () => {
+    createSettingsWindow()
+  })
+
   // Build a patched store that triggers side effects when settings change
   const patchedStore = {
     ...settingsStore,

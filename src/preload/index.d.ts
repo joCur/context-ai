@@ -22,6 +22,7 @@ export interface ContextAIAPI {
   dismiss(): void
   getSettings(): Promise<AppSettings>
   onSettingsChanged(callback: (settings: AppSettings) => void): () => void
+  openSettings(): void
 }
 
 declare global {

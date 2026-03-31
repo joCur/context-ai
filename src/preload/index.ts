@@ -81,6 +81,10 @@ const api = {
     ipcRenderer.on(IPC.SETTINGS_CHANGED, handler)
     return () => ipcRenderer.removeListener(IPC.SETTINGS_CHANGED, handler)
   },
+
+  openSettings(): void {
+    ipcRenderer.send(IPC.WINDOW_OPEN_SETTINGS)
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)
