@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/joCur/context-ai/compare/v1.0.1...v1.0.2) (2026-03-31)
+
+
+### Bug Fixes
+
+* release build for native addon packaging ([#53](https://github.com/joCur/context-ai/issues/53)) ([a0b0c48](https://github.com/joCur/context-ai/commit/a0b0c48481b967117d1155e87a6b69d4bb0d5574))
+* run CI on release-please branches ([#55](https://github.com/joCur/context-ai/issues/55)) ([b62fcbb](https://github.com/joCur/context-ai/commit/b62fcbb44dede47b8f27bb764444588d8c0cba9e))
+
 ## [1.0.1](https://github.com/joCur/context-ai/compare/v1.0.0...v1.0.1) (2026-03-31)
 
 
