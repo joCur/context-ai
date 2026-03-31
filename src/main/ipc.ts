@@ -1,36 +1,37 @@
 import { ipcMain, clipboard, type BrowserWindow } from 'electron'
 import { IPC, type PromptSubmission, type OutputAction } from '../shared/ipc'
 import { checkAccessibilityPermission } from './context-bridge'
+import { buildChatRequest, streamChatCompletion } from './openrouter'
+import type { SettingsStore } from './settings-store'
 
-export function setupIPC(promptWindow: BrowserWindow): void {
+export function setupIPC(promptWindow: BrowserWindow, settingsStore: SettingsStore): void {
   ipcMain.on(IPC.PROMPT_SUBMIT, (_event, submission: PromptSubmission) => {
-    // Mock streaming response until M5 (OpenRouter integration) is built
-    const mockResponse = `Here's a response to your prompt.
+    const settings = settingsStore.getAll()
 
-This demonstrates **markdown rendering** with various elements:
+    if (!settings.apiKey) {
+      sendStreamError(promptWindow, 'No API key configured. Open Settings → AI Provider to add your OpenRouter API key.')
+      return
+    }
 
-- Bullet points work
-- So does *italic* and **bold**
+    if (!settings.model) {
+      sendStreamError(promptWindow, 'No model selected. Open Settings → AI Provider to choose a model.')
+      return
+    }
 
-\`\`\`typescript
-function greet(name: string): string {
-  return \`Hello, \${name}!\`
-}
-\`\`\`
+    const request = buildChatRequest({
+      prompt: submission.prompt,
+      context: submission.context,
+      model: settings.model,
+      systemPrompt: settings.systemPrompt,
+      temperature: settings.temperature,
+      maxTokens: settings.maxTokens,
+    })
 
-The selected context was: "${submission.context ?? 'none'}"`;
-
-    const tokens = mockResponse.split(/(?<=[ \n])/);
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < tokens.length) {
-        sendStreamToken(promptWindow, tokens[i]);
-        i++;
-      } else {
-        clearInterval(interval);
-        sendStreamDone(promptWindow);
-      }
-    }, 30);
+    streamChatCompletion(settings.apiKey, request, {
+      onToken: (content) => sendStreamToken(promptWindow, content),
+      onDone: () => sendStreamDone(promptWindow),
+      onError: (message) => sendStreamError(promptWindow, message),
+    })
   })
 
   ipcMain.on(IPC.OUTPUT_ACTION, (_event, action: OutputAction, responseText?: string) => {

@@ -167,7 +167,7 @@ app.whenReady().then(() => {
   initContextBridge(loadNativeAddon())
 
   promptWindow = createPromptWindow()
-  setupIPC(promptWindow)
+  setupIPC(promptWindow, settingsStore)
 
   // Build a patched store that triggers side effects when settings change
   const patchedStore = {
