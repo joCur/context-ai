@@ -18,6 +18,7 @@ export interface ContextAIAPI {
   onPermissionStatus(callback: (status: PermissionStatus) => void): () => void
   requestAccessibilityPermission(): void
   onWindowReset(callback: () => void): () => void
+  resizeWindow(height: number): void
   dismiss(): void
   getSettings(): Promise<AppSettings>
   onSettingsChanged(callback: (settings: AppSettings) => void): () => void

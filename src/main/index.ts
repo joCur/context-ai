@@ -57,14 +57,13 @@ function createPromptWindow(): BrowserWindow {
 
   const window = new BrowserWindow({
     width: settings.promptWindowWidth,
-    height: 600,
+    height: 80,
     show: false,
     frame: false,
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: true,
-    transparent: true,
-    hasShadow: false,
+    backgroundColor: '#0a0a0f',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false

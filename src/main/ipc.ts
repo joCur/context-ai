@@ -48,6 +48,12 @@ export function setupIPC(promptWindow: BrowserWindow, settingsStore: SettingsSto
     promptWindow.hide()
   })
 
+  ipcMain.on(IPC.WINDOW_RESIZE, (_event, height: number) => {
+    const bounds = promptWindow.getBounds()
+    const maxHeight = Math.round(require('electron').screen.getPrimaryDisplay().workAreaSize.height * 0.8)
+    promptWindow.setBounds({ ...bounds, height: Math.min(height, maxHeight) })
+  })
+
   ipcMain.on(IPC.PERMISSION_REQUEST, () => {
     if (process.platform === 'darwin') {
       promptWindow.hide()

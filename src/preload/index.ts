@@ -63,6 +63,10 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.WINDOW_RESET, handler)
   },
 
+  resizeWindow(height: number): void {
+    ipcRenderer.send(IPC.WINDOW_RESIZE, height)
+  },
+
   dismiss(): void {
     ipcRenderer.send(IPC.WINDOW_DISMISS)
   },

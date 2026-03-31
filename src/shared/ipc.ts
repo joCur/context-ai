@@ -9,6 +9,7 @@ export const IPC = {
   PERMISSION_REQUEST: 'permission:request',
   WINDOW_DISMISS: 'window:dismiss',
   WINDOW_RESET: 'window:reset',
+  WINDOW_RESIZE: 'window:resize',
   SETTINGS_GET: 'settings:get',
   SETTINGS_SET: 'settings:set',
   SETTINGS_CHANGED: 'settings:changed',

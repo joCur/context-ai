@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { usePromptState } from '../hooks/usePromptState'
 import { ContextBar } from './ContextBar'
 import { PromptInput } from './PromptInput'
@@ -39,6 +39,20 @@ export function PromptWindow(): React.JSX.Element {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = Math.ceil(entry.borderBoxSize[0].blockSize)
+        window.api.resizeWindow(height)
+      }
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   const showContextBar = state.phase === 'context' ||
     ((state.phase === 'streaming' || state.phase === 'complete') && state.contextText !== null)
 
@@ -49,7 +63,7 @@ export function PromptWindow(): React.JSX.Element {
   const showActionBar = state.phase === 'complete'
 
   return (
-    <div style={{
+    <div ref={containerRef} style={{
       width: settings.promptWindowWidth || 560,
       background: '#0a0a0f',
       border: `1px solid ${accent}26`,
@@ -58,7 +72,6 @@ export function PromptWindow(): React.JSX.Element {
       overflow: 'hidden',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       fontSize: settings.fontSize || 14,
-      maxHeight: '80vh',
       display: 'flex',
       flexDirection: 'column',
       animation: 'promptFadeIn 150ms ease-out',
