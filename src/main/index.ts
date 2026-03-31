@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeImage, Tray, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { setupIPC, sendSelectedText, sendPermissionStatus, sendWindowReset } from './ipc'
 import { setupSettingsIPC } from './settings-ipc'
@@ -6,6 +6,7 @@ import { createSettingsStore } from './settings-store'
 import { registerHotkey, unregisterHotkey } from './hotkey'
 import { initContextBridge, captureViaClipboard, captureViaAccessibility, getSourceAppPid, checkAccessibilityPermission } from './context-bridge'
 import type { NativeContextBridge } from './context-bridge'
+import { setupAutoUpdater } from './auto-updater'
 
 let promptWindow: BrowserWindow | null = null
 let settingsWindow: BrowserWindow | null = null
@@ -176,6 +177,19 @@ function registerCurrentHotkey(): void {
   }
 }
 
+// Single instance lock — if another instance launches, focus the existing one
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (promptWindow) {
+      promptWindow.show()
+      promptWindow.focus()
+    }
+  })
+}
+
 app.whenReady().then(() => {
   initContextBridge(loadNativeAddon())
 
@@ -223,7 +237,17 @@ app.whenReady().then(() => {
   tray.setToolTip('Context AI')
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Open Context AI', click: () => onHotkeyPressed() },
+    { type: 'separator' },
     { label: 'Settings', click: () => createSettingsWindow() },
+    { label: 'About Context AI', click: () => {
+      const { dialog } = require('electron')
+      dialog.showMessageBox({
+        type: 'info',
+        title: 'About Context AI',
+        message: `Context AI v${app.getVersion()}`,
+        detail: 'AI-assisted text operations via global hotkey.\n\nhttps://github.com/joCur/context-ai',
+      })
+    }},
     { type: 'separator' },
     { label: 'Quit', click: () => app.quit() }
   ]))
@@ -240,6 +264,8 @@ app.whenReady().then(() => {
   // Apply launch-at-startup setting
   const launchSetting = settingsStore.get('launchAtStartup')
   app.setLoginItemSettings({ openAtLogin: launchSetting })
+
+  setupAutoUpdater()
 })
 
 app.on('will-quit', () => {
