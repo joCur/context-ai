@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar, type TabId } from './components/Sidebar'
 import { GeneralTab } from './components/GeneralTab'
 import { AIProviderTab } from './components/AIProviderTab'
@@ -7,7 +7,11 @@ import { AppearanceTab } from './components/AppearanceTab'
 import { useSettings } from './hooks/useSettings'
 
 export function SettingsApp(): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState<TabId>('general')
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    const hash = window.location.hash.slice(1)
+    const validTabs: TabId[] = ['general', 'ai-provider', 'quick-actions', 'appearance']
+    return validTabs.includes(hash as TabId) ? (hash as TabId) : 'general'
+  })
   const { settings, loading, updateSetting } = useSettings()
 
   if (loading) {

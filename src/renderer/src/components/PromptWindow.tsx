@@ -72,7 +72,7 @@ export function PromptWindow(): React.JSX.Element {
     return (
       <div ref={containerRef} style={shellStyle}>
         <PermissionBanner />
-        <WelcomeScreen onSetupApiKey={() => window.api.openSettings()} />
+        <WelcomeScreen onSetupApiKey={() => window.api.openSettings('ai-provider')} />
       </div>
     )
   }

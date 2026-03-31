@@ -86,8 +86,11 @@ function createPromptWindow(): BrowserWindow {
   return window
 }
 
-function createSettingsWindow(): void {
+function createSettingsWindow(tab?: string): void {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
+    if (tab) {
+      settingsWindow.webContents.send('settings:navigate-tab', tab)
+    }
     settingsWindow.focus()
     return
   }
@@ -103,10 +106,11 @@ function createSettingsWindow(): void {
     }
   })
 
+  const hash = tab ? `#${tab}` : ''
   if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
-    settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/settings/')
+    settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/settings/' + hash)
   } else {
-    settingsWindow.loadFile(join(__dirname, '../renderer/settings/index.html'))
+    settingsWindow.loadFile(join(__dirname, '../renderer/settings/index.html'), { hash })
   }
 
   // Show dock icon while settings is open
@@ -196,8 +200,8 @@ app.whenReady().then(() => {
   promptWindow = createPromptWindow()
   setupIPC(promptWindow, settingsStore)
 
-  ipcMain.on('window:open-settings', () => {
-    createSettingsWindow()
+  ipcMain.on('window:open-settings', (_event, tab?: string) => {
+    createSettingsWindow(tab)
   })
 
   // Build a patched store that triggers side effects when settings change

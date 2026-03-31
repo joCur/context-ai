@@ -12,7 +12,7 @@ export function WelcomeScreen({ onSetupApiKey }: WelcomeScreenProps): React.JSX.
       gap: 16,
       textAlign: 'center',
     }}>
-      <div style={{ fontSize: 28, marginBottom: 4 }}>Welcome to Context AI</div>
+      <div style={{ fontSize: 28, marginBottom: 4, color: '#fafafa' }}>Welcome to Context AI</div>
       <p style={{
         color: '#a1a1aa',
         fontSize: 14,

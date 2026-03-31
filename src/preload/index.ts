@@ -82,8 +82,8 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.SETTINGS_CHANGED, handler)
   },
 
-  openSettings(): void {
-    ipcRenderer.send(IPC.WINDOW_OPEN_SETTINGS)
+  openSettings(tab?: string): void {
+    ipcRenderer.send(IPC.WINDOW_OPEN_SETTINGS, tab)
   },
 }
 
