@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/joCur/context-ai/compare/v1.0.2...v1.0.3) (2026-03-31)
+
+
+### Bug Fixes
+
+* upload release artifacts to existing Release Please release ([#56](https://github.com/joCur/context-ai/issues/56)) ([dd50372](https://github.com/joCur/context-ai/commit/dd50372c15bc910ef47a00baae6bb9b0d295c922))
+
 ## [1.0.2](https://github.com/joCur/context-ai/compare/v1.0.1...v1.0.2) (2026-03-31)
 
 
