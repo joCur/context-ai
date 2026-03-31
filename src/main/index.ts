@@ -139,9 +139,15 @@ async function onHotkeyPressed(): Promise<void> {
 
   blurGuard = true
   sendWindowReset(promptWindow)
+
+  // Move to current Space: temporarily join all, show, then anchor to current
+  promptWindow.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
   promptWindow.show()
   promptWindow.focus()
-  setTimeout(() => { blurGuard = false }, 200)
+  setTimeout(() => {
+    promptWindow?.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
+    blurGuard = false
+  }, 100)
 
   checkAndSendPermissionStatus(false)
 
