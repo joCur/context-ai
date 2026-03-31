@@ -20,13 +20,9 @@ export function getSourceAppPid(): number {
   return native?.getFrontmostAppPid() ?? 0
 }
 
-export async function getSelectedText(pid = 0): Promise<SelectedText | null> {
+// Clipboard capture — must run while source app is still focused
+export async function captureViaClipboard(): Promise<string | null> {
   if (!native) return null
-
-  const text = native.getSelectedTextViaAccessibility(pid || undefined)
-  if (text && text.length > 0) {
-    return { text, method: 'accessibility' }
-  }
 
   const saved = clipboard.readText()
   clipboard.clear()
@@ -38,11 +34,14 @@ export async function getSelectedText(pid = 0): Promise<SelectedText | null> {
   const captured = clipboard.readText()
   clipboard.writeText(saved)
 
-  if (captured && captured.length > 0) {
-    return { text: captured, method: 'clipboard' }
-  }
+  return (captured && captured.length > 0) ? captured : null
+}
 
-  return null
+// Accessibility API capture — can run after window is shown (uses PID)
+export function captureViaAccessibility(pid: number): string | null {
+  if (!native) return null
+  const text = native.getSelectedTextViaAccessibility(pid || undefined)
+  return (text && text.length > 0) ? text : null
 }
 
 export function checkAccessibilityPermission(prompt = false): boolean {

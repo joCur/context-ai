@@ -20,12 +20,16 @@ interface BuildRequestParams {
   maxTokens: number
 }
 
+const BASE_SYSTEM_PROMPT = 'Respond with only the requested result. Do not include explanations, commentary, or additional text unless explicitly asked. Your output should be directly usable — ready to copy or insert as-is.'
+
 export function buildChatRequest(params: BuildRequestParams): ChatRequest {
   const messages: ChatMessage[] = []
 
-  if (params.systemPrompt) {
-    messages.push({ role: 'system', content: params.systemPrompt })
-  }
+  const systemPrompt = params.systemPrompt
+    ? `${BASE_SYSTEM_PROMPT}\n\n${params.systemPrompt}`
+    : BASE_SYSTEM_PROMPT
+
+  messages.push({ role: 'system', content: systemPrompt })
 
   let userContent = params.prompt
   if (params.context) {

@@ -4,7 +4,7 @@ import { setupIPC, sendSelectedText, sendPermissionStatus, sendWindowReset } fro
 import { setupSettingsIPC } from './settings-ipc'
 import { createSettingsStore } from './settings-store'
 import { registerHotkey, unregisterHotkey } from './hotkey'
-import { initContextBridge, getSelectedText, getSourceAppPid, checkAccessibilityPermission } from './context-bridge'
+import { initContextBridge, captureViaClipboard, captureViaAccessibility, getSourceAppPid, checkAccessibilityPermission } from './context-bridge'
 import type { NativeContextBridge } from './context-bridge'
 
 let promptWindow: BrowserWindow | null = null
@@ -134,13 +134,23 @@ function checkAndSendPermissionStatus(prompt: boolean): void {
 async function onHotkeyPressed(): Promise<void> {
   if (!promptWindow) return
 
-  // Grab source app PID instantly (< 1ms), then show window
+  // Capture text while source app is still focused
   const sourcePid = getSourceAppPid()
 
+  // Try AX API first (instant for most apps)
+  let text = captureViaAccessibility(sourcePid)
+  let method: 'accessibility' | 'clipboard' = 'accessibility'
+
+  // Fall back to clipboard if AX returned nothing
+  if (!text) {
+    text = await captureViaClipboard()
+    method = 'clipboard'
+  }
+
+  // Now show window
   blurGuard = true
   sendWindowReset(promptWindow)
 
-  // Move to current Space: temporarily join all, show, then anchor to current
   promptWindow.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
   promptWindow.show()
   promptWindow.focus()
@@ -151,10 +161,8 @@ async function onHotkeyPressed(): Promise<void> {
 
   checkAndSendPermissionStatus(false)
 
-  // Capture text using saved PID (works even after our window has focus)
-  const result = await getSelectedText(sourcePid)
-  if (result) {
-    sendSelectedText(promptWindow, result.text, result.method)
+  if (text) {
+    sendSelectedText(promptWindow, text, method)
   }
 }
 

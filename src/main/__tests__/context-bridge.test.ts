@@ -11,7 +11,8 @@ vi.mock('electron', () => ({
 import { clipboard } from 'electron'
 import {
   initContextBridge,
-  getSelectedText,
+  captureViaClipboard,
+  captureViaAccessibility,
   checkAccessibilityPermission,
   type NativeContextBridge
 } from '../context-bridge'
@@ -20,6 +21,7 @@ function createMockNative(
   overrides: Partial<NativeContextBridge> = {}
 ): NativeContextBridge {
   return {
+    getFrontmostAppPid: vi.fn(() => 123),
     getSelectedTextViaAccessibility: vi.fn(() => null),
     simulateCopy: vi.fn(),
     isAccessibilityGranted: vi.fn(() => true),
@@ -33,21 +35,26 @@ describe('context-bridge', () => {
     initContextBridge(null)
   })
 
-  describe('getSelectedText', () => {
-    it('returns text via accessibility when available', async () => {
-      const mock = createMockNative({
-        getSelectedTextViaAccessibility: vi.fn(() => 'hello world')
-      })
-      initContextBridge(mock)
-
-      const result = await getSelectedText()
-
-      expect(result).toEqual({ text: 'hello world', method: 'accessibility' })
-      expect(mock.simulateCopy).not.toHaveBeenCalled()
-      expect(clipboard.clear).not.toHaveBeenCalled()
+  describe('captureViaAccessibility', () => {
+    it('returns text when accessibility API has selected text', () => {
+      initContextBridge(
+        createMockNative({ getSelectedTextViaAccessibility: vi.fn(() => 'hello world') })
+      )
+      expect(captureViaAccessibility(123)).toBe('hello world')
     })
 
-    it('falls back to clipboard when accessibility returns null', async () => {
+    it('returns null when accessibility returns empty', () => {
+      initContextBridge(createMockNative())
+      expect(captureViaAccessibility(123)).toBeNull()
+    })
+
+    it('returns null when no native addon', () => {
+      expect(captureViaAccessibility(123)).toBeNull()
+    })
+  })
+
+  describe('captureViaClipboard', () => {
+    it('captures text via simulated copy', async () => {
       const mock = createMockNative()
       initContextBridge(mock)
 
@@ -55,51 +62,31 @@ describe('context-bridge', () => {
         .mockReturnValueOnce('original clipboard')
         .mockReturnValueOnce('captured via copy')
 
-      const result = await getSelectedText()
+      const result = await captureViaClipboard()
 
       expect(mock.simulateCopy).toHaveBeenCalled()
       expect(clipboard.clear).toHaveBeenCalled()
       expect(clipboard.writeText).toHaveBeenCalledWith('original clipboard')
-      expect(result).toEqual({ text: 'captured via copy', method: 'clipboard' })
+      expect(result).toBe('captured via copy')
     })
 
-    it('restores clipboard and returns null when fallback captures nothing', async () => {
-      const mock = createMockNative()
-      initContextBridge(mock)
+    it('restores clipboard and returns null when nothing captured', async () => {
+      initContextBridge(createMockNative())
 
       vi.mocked(clipboard.readText)
         .mockReturnValueOnce('saved')
         .mockReturnValueOnce('')
 
-      const result = await getSelectedText()
+      const result = await captureViaClipboard()
 
       expect(clipboard.writeText).toHaveBeenCalledWith('saved')
       expect(result).toBeNull()
     })
 
-    it('returns null when no native addon is loaded', async () => {
-      initContextBridge(null)
-
-      const result = await getSelectedText()
-
+    it('returns null when no native addon', async () => {
+      const result = await captureViaClipboard()
       expect(result).toBeNull()
       expect(clipboard.clear).not.toHaveBeenCalled()
-    })
-
-    it('skips empty accessibility text and tries clipboard', async () => {
-      const mock = createMockNative({
-        getSelectedTextViaAccessibility: vi.fn(() => '')
-      })
-      initContextBridge(mock)
-
-      vi.mocked(clipboard.readText)
-        .mockReturnValueOnce('')
-        .mockReturnValueOnce('from clipboard')
-
-      const result = await getSelectedText()
-
-      expect(mock.simulateCopy).toHaveBeenCalled()
-      expect(result).toEqual({ text: 'from clipboard', method: 'clipboard' })
     })
   })
 
@@ -118,8 +105,7 @@ describe('context-bridge', () => {
       expect(checkAccessibilityPermission()).toBe(false)
     })
 
-    it('returns false when no native addon is loaded', () => {
-      initContextBridge(null)
+    it('returns false when no native addon', () => {
       expect(checkAccessibilityPermission()).toBe(false)
     })
   })

@@ -317,7 +317,7 @@ export function AIProviderTab({ settings, onUpdate }: AIProviderTabProps): React
         <textarea
           value={settings.systemPrompt}
           onChange={(e) => onUpdate('systemPrompt', e.target.value)}
-          placeholder="Optional system prompt prepended to every request..."
+          placeholder="Additional instructions appended to the base system prompt..."
           rows={4}
           style={{
             ...inputStyle,

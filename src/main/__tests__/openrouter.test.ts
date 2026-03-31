@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { buildChatRequest } from '../openrouter'
 
+const BASE_PROMPT = 'Respond with only the requested result. Do not include explanations, commentary, or additional text unless explicitly asked. Your output should be directly usable — ready to copy or insert as-is.'
+
 describe('buildChatRequest', () => {
-  it('constructs request with prompt only (no context)', () => {
+  it('always includes base system prompt', () => {
     const req = buildChatRequest({
       prompt: 'Hello',
       context: null,
@@ -16,8 +18,9 @@ describe('buildChatRequest', () => {
     expect(req.stream).toBe(true)
     expect(req.temperature).toBe(0.7)
     expect(req.max_tokens).toBe(2048)
-    expect(req.messages).toHaveLength(1)
-    expect(req.messages[0]).toEqual({ role: 'user', content: 'Hello' })
+    expect(req.messages).toHaveLength(2)
+    expect(req.messages[0]).toEqual({ role: 'system', content: BASE_PROMPT })
+    expect(req.messages[1]).toEqual({ role: 'user', content: 'Hello' })
   })
 
   it('constructs request with context appended to user message', () => {
@@ -30,26 +33,26 @@ describe('buildChatRequest', () => {
       maxTokens: 2048,
     })
 
-    expect(req.messages).toHaveLength(1)
-    expect(req.messages[0].content).toBe('Summarize this\n\nContext:\nSome selected text')
+    expect(req.messages).toHaveLength(2)
+    expect(req.messages[1].content).toBe('Summarize this\n\nContext:\nSome selected text')
   })
 
-  it('includes system prompt when provided', () => {
+  it('appends user system prompt to base prompt', () => {
     const req = buildChatRequest({
       prompt: 'Hello',
       context: null,
       model: 'openai/gpt-4o',
-      systemPrompt: 'You are a helpful assistant.',
+      systemPrompt: 'Always respond in German.',
       temperature: 0.7,
       maxTokens: 2048,
     })
 
     expect(req.messages).toHaveLength(2)
-    expect(req.messages[0]).toEqual({ role: 'system', content: 'You are a helpful assistant.' })
+    expect(req.messages[0].content).toBe(BASE_PROMPT + '\n\nAlways respond in German.')
     expect(req.messages[1]).toEqual({ role: 'user', content: 'Hello' })
   })
 
-  it('includes system prompt and context together', () => {
+  it('includes user system prompt and context together', () => {
     const req = buildChatRequest({
       prompt: 'Fix grammar',
       context: 'teh quick brown fox',
@@ -63,7 +66,7 @@ describe('buildChatRequest', () => {
     expect(req.temperature).toBe(0.3)
     expect(req.max_tokens).toBe(1024)
     expect(req.messages).toHaveLength(2)
-    expect(req.messages[0]).toEqual({ role: 'system', content: 'Be concise.' })
+    expect(req.messages[0].content).toBe(BASE_PROMPT + '\n\nBe concise.')
     expect(req.messages[1].content).toBe('Fix grammar\n\nContext:\nteh quick brown fox')
   })
 })
