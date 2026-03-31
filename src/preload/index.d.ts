@@ -6,6 +6,7 @@ import type {
   OutputAction,
   PermissionStatus
 } from '../shared/ipc'
+import type { AppSettings } from '../shared/settings-types'
 
 export interface ContextAIAPI {
   onSelectedText(callback: (data: SelectedText) => void): () => void
@@ -18,6 +19,8 @@ export interface ContextAIAPI {
   requestAccessibilityPermission(): void
   onWindowReset(callback: () => void): () => void
   dismiss(): void
+  getSettings(): Promise<AppSettings>
+  onSettingsChanged(callback: (settings: AppSettings) => void): () => void
 }
 
 declare global {

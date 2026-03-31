@@ -8,6 +8,7 @@ import type {
   OutputAction,
   PermissionStatus
 } from '../shared/ipc'
+import type { AppSettings } from '../shared/settings-types'
 
 const api = {
   onSelectedText(callback: (data: SelectedText) => void): () => void {
@@ -64,6 +65,17 @@ const api = {
 
   dismiss(): void {
     ipcRenderer.send(IPC.WINDOW_DISMISS)
+  },
+
+  getSettings(): Promise<AppSettings> {
+    return ipcRenderer.invoke(IPC.SETTINGS_GET)
+  },
+
+  onSettingsChanged(callback: (settings: AppSettings) => void): () => void {
+    const handler = (_event: Electron.IpcRendererEvent, settings: AppSettings): void =>
+      callback(settings)
+    ipcRenderer.on(IPC.SETTINGS_CHANGED, handler)
+    return () => ipcRenderer.removeListener(IPC.SETTINGS_CHANGED, handler)
   },
 }
 

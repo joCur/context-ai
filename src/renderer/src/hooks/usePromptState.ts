@@ -1,4 +1,6 @@
-import { useReducer, useEffect, useCallback } from 'react'
+import { useReducer, useEffect, useCallback, useState } from 'react'
+import type { QuickAction, AppSettings } from '../../../shared/settings-types'
+import { DEFAULT_SETTINGS } from '../../../shared/settings-types'
 
 // --- State types ---
 
@@ -93,44 +95,46 @@ export function promptReducer(state: PromptState, action: PromptAction): PromptS
   }
 }
 
-// --- Quick action definitions ---
-
-export const DEFAULT_QUICK_ACTIONS = [
-  { name: 'Rewrite', template: 'Rewrite the following text:\n\n{{selection}}' },
-  { name: 'Summarize', template: 'Summarize the following text:\n\n{{selection}}' },
-  { name: 'Fix Grammar', template: 'Fix the grammar in the following text:\n\n{{selection}}' },
-  { name: 'Translate', template: 'Translate the following text to English:\n\n{{selection}}' },
-  { name: 'Explain', template: 'Explain the following text:\n\n{{selection}}' },
-]
-
 // --- Hook ---
 
 export function usePromptState() {
   const [state, dispatch] = useReducer(promptReducer, { phase: 'empty' } as PromptState)
+  const [quickActions, setQuickActions] = useState<QuickAction[]>(DEFAULT_SETTINGS.quickActions)
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS)
 
   useEffect(() => {
+    // Load settings on mount
+    window.api.getSettings().then((s) => {
+      setQuickActions(s.quickActions)
+      setSettings(s)
+    })
+
     const unsubs = [
       window.api.onWindowReset(() => dispatch({ type: 'DISMISS' })),
       window.api.onSelectedText((data) => dispatch({ type: 'CONTEXT_RECEIVED', text: data.text })),
       window.api.onStreamToken((data) => dispatch({ type: 'STREAM_TOKEN', content: data.content })),
       window.api.onStreamDone(() => dispatch({ type: 'STREAM_DONE' })),
       window.api.onStreamError((error) => dispatch({ type: 'STREAM_ERROR', message: error.message })),
+      window.api.onSettingsChanged((updated) => {
+        setQuickActions(updated.quickActions)
+        setSettings(updated)
+      }),
     ]
     return () => unsubs.forEach((fn) => fn())
   }, [])
 
   const submitPrompt = useCallback((prompt: string) => {
     const context = state.phase === 'context' ? state.contextText : null
-    window.api.submitPrompt({ prompt, context, model: '' })
+    window.api.submitPrompt({ prompt, context, model: settings.model })
     dispatch({ type: 'PROMPT_SUBMITTED', prompt })
-  }, [state])
+  }, [state, settings.model])
 
   const submitQuickAction = useCallback((name: string, template: string) => {
     const context = state.phase === 'context' ? state.contextText : null
     const prompt = context ? template.replace('{{selection}}', context) : template
-    window.api.submitPrompt({ prompt, context, model: '' })
+    window.api.submitPrompt({ prompt, context, model: settings.model })
     dispatch({ type: 'QUICK_ACTION_SUBMITTED', action: name })
-  }, [state])
+  }, [state, settings.model])
 
   const dismiss = useCallback(() => {
     dispatch({ type: 'DISMISS' })
@@ -149,5 +153,5 @@ export function usePromptState() {
     }
   }, [state])
 
-  return { state, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection }
+  return { state, quickActions, settings, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection }
 }

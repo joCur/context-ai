@@ -1,12 +1,17 @@
 import { app, BrowserWindow, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { setupIPC, sendSelectedText, sendPermissionStatus, sendWindowReset } from './ipc'
+import { setupSettingsIPC } from './settings-ipc'
+import { createSettingsStore } from './settings-store'
 import { registerHotkey, unregisterHotkey } from './hotkey'
 import { initContextBridge, getSelectedText, getSourceAppPid, checkAccessibilityPermission } from './context-bridge'
 import type { NativeContextBridge } from './context-bridge'
 
 let promptWindow: BrowserWindow | null = null
+let settingsWindow: BrowserWindow | null = null
 let tray: Tray | null = null
+
+const settingsStore = createSettingsStore()
 
 function getTrayIconPath(): string {
   if (app.isPackaged) {
@@ -38,11 +43,20 @@ function loadNativeAddon(): NativeContextBridge | null {
   }
 }
 
+function getAllWindows(): BrowserWindow[] {
+  const windows: BrowserWindow[] = []
+  if (promptWindow && !promptWindow.isDestroyed()) windows.push(promptWindow)
+  if (settingsWindow && !settingsWindow.isDestroyed()) windows.push(settingsWindow)
+  return windows
+}
+
 let blurGuard = false
 
 function createPromptWindow(): BrowserWindow {
+  const settings = settingsStore.getAll()
+
   const window = new BrowserWindow({
-    width: 560,
+    width: settings.promptWindowWidth,
     height: 600,
     show: false,
     frame: false,
@@ -64,12 +78,40 @@ function createPromptWindow(): BrowserWindow {
   }
 
   window.on('blur', () => {
-    if (!blurGuard) {
+    if (!blurGuard && settingsStore.get('hideOnBlur')) {
       window.hide()
     }
   })
 
   return window
+}
+
+function createSettingsWindow(): void {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus()
+    return
+  }
+
+  settingsWindow = new BrowserWindow({
+    width: 700,
+    height: 500,
+    title: 'Context AI — Settings',
+    backgroundColor: '#0a0a0f',
+    webPreferences: {
+      preload: join(__dirname, '../preload/settings.js'),
+      sandbox: false
+    }
+  })
+
+  if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
+    settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/settings/')
+  } else {
+    settingsWindow.loadFile(join(__dirname, '../renderer/settings/index.html'))
+  }
+
+  settingsWindow.on('closed', () => {
+    settingsWindow = null
+  })
 }
 
 function checkAndSendPermissionStatus(prompt: boolean): void {
@@ -103,11 +145,50 @@ async function onHotkeyPressed(): Promise<void> {
   }
 }
 
+function registerCurrentHotkey(): void {
+  const hotkey = settingsStore.get('hotkey')
+  const success = registerHotkey(hotkey, () => {
+    onHotkeyPressed()
+  })
+  if (!success) {
+    console.error(`Failed to register global hotkey ${hotkey}`)
+  }
+}
+
 app.whenReady().then(() => {
   initContextBridge(loadNativeAddon())
 
   promptWindow = createPromptWindow()
   setupIPC(promptWindow)
+
+  // Build a patched store that triggers side effects when settings change
+  const patchedStore = {
+    ...settingsStore,
+    set<K extends keyof import('../shared/settings-types').AppSettings>(
+      key: K,
+      value: import('../shared/settings-types').AppSettings[K]
+    ) {
+      const result = settingsStore.set(key, value)
+
+      if (key === 'hotkey') {
+        unregisterHotkey()
+        registerCurrentHotkey()
+      }
+
+      if (key === 'launchAtStartup') {
+        app.setLoginItemSettings({ openAtLogin: value as boolean })
+      }
+
+      if (key === 'promptWindowWidth' && promptWindow && !promptWindow.isDestroyed()) {
+        const bounds = promptWindow.getBounds()
+        promptWindow.setBounds({ ...bounds, width: value as number })
+      }
+
+      return result
+    },
+  }
+
+  setupSettingsIPC(patchedStore, getAllWindows)
 
   // Set dock icon on macOS
   if (process.platform === 'darwin') {
@@ -122,6 +203,7 @@ app.whenReady().then(() => {
   tray.setToolTip('Context AI')
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Open Context AI', click: () => onHotkeyPressed() },
+    { label: 'Settings', click: () => createSettingsWindow() },
     { type: 'separator' },
     { label: 'Quit', click: () => app.quit() }
   ]))
@@ -133,12 +215,11 @@ app.whenReady().then(() => {
     checkAndSendPermissionStatus(false)
   })
 
-  const success = registerHotkey('CmdOrCtrl+Shift+Space', () => {
-    onHotkeyPressed()
-  })
-  if (!success) {
-    console.error('Failed to register global hotkey CmdOrCtrl+Shift+Space')
-  }
+  registerCurrentHotkey()
+
+  // Apply launch-at-startup setting
+  const launchSetting = settingsStore.get('launchAtStartup')
+  app.setLoginItemSettings({ openAtLogin: launchSetting })
 })
 
 app.on('will-quit', () => {

@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react'
-import { usePromptState, DEFAULT_QUICK_ACTIONS } from '../hooks/usePromptState'
+import { usePromptState } from '../hooks/usePromptState'
 import { ContextBar } from './ContextBar'
 import { PromptInput } from './PromptInput'
 import { QuickActions } from './QuickActions'
@@ -9,7 +9,7 @@ import { ActionBar } from './ActionBar'
 import { PermissionBanner } from './PermissionBanner'
 
 export function PromptWindow(): React.JSX.Element {
-  const { state, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection } =
+  const { state, quickActions, submitPrompt, submitQuickAction, dismiss, copyResponse, replaceSelection } =
     usePromptState()
 
   const handleKeyDown = useCallback(
@@ -79,7 +79,7 @@ export function PromptWindow(): React.JSX.Element {
 
       {showQuickActions && (
         <QuickActions
-          actions={DEFAULT_QUICK_ACTIONS}
+          actions={quickActions}
           onSelect={submitQuickAction}
         />
       )}
