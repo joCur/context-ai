@@ -96,6 +96,18 @@ describe('promptReducer', () => {
         response: 'partial\n\nError: Rate limited'
       })
     })
+
+    it('handles error before streaming started (e.g., no API key)', () => {
+      const prev: PromptState = { phase: 'context', contextText: 'text' }
+      const state = promptReducer(prev, { type: 'STREAM_ERROR', message: 'No API key configured.' })
+      expect(state).toEqual({
+        phase: 'complete',
+        contextText: 'text',
+        submittedPrompt: null,
+        quickAction: null,
+        response: 'Error: No API key configured.',
+      })
+    })
   })
 
   describe('DISMISS', () => {

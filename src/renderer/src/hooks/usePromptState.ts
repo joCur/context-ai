@@ -80,11 +80,21 @@ export function promptReducer(state: PromptState, action: PromptAction): PromptS
       return { ...state, phase: 'complete' }
 
     case 'STREAM_ERROR':
-      if (state.phase !== 'streaming') return state
+      if (state.phase === 'empty') return state
+      if (state.phase === 'streaming') {
+        return {
+          ...state,
+          phase: 'complete',
+          response: state.response + '\n\nError: ' + action.message,
+        }
+      }
+      // Error received before streaming started (e.g., no API key)
       return {
-        ...state,
         phase: 'complete',
-        response: state.response + '\n\nError: ' + action.message
+        contextText: state.phase === 'context' ? state.contextText : null,
+        submittedPrompt: null,
+        quickAction: null,
+        response: 'Error: ' + action.message,
       }
 
     case 'DISMISS':
