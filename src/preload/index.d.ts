@@ -16,6 +16,7 @@ export interface ContextAIAPI {
   executeOutputAction(action: OutputAction, responseText?: string): void
   onPermissionStatus(callback: (status: PermissionStatus) => void): () => void
   requestAccessibilityPermission(): void
+  onWindowReset(callback: () => void): () => void
   dismiss(): void
 }
 

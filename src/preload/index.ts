@@ -56,6 +56,12 @@ const api = {
     ipcRenderer.send(IPC.PERMISSION_REQUEST)
   },
 
+  onWindowReset(callback: () => void): () => void {
+    const handler = (): void => callback()
+    ipcRenderer.on(IPC.WINDOW_RESET, handler)
+    return () => ipcRenderer.removeListener(IPC.WINDOW_RESET, handler)
+  },
+
   dismiss(): void {
     ipcRenderer.send(IPC.WINDOW_DISMISS)
   },

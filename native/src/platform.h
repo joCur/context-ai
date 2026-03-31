@@ -4,7 +4,11 @@
 namespace context_bridge {
 
 // Returns selected text via OS accessibility API, or empty string if unavailable.
-std::string getSelectedTextViaAccessibility();
+// If pid is provided, queries that specific app instead of the system-wide focused element.
+std::string getSelectedTextViaAccessibility(int pid = 0);
+
+// Returns the PID of the frontmost application.
+int getFrontmostAppPid();
 
 // Simulates Cmd+C (macOS) or Ctrl+C (Windows) in the frontmost app.
 void simulateCopy();

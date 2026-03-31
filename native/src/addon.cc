@@ -1,9 +1,17 @@
 #include <napi.h>
 #include "platform.h"
 
+Napi::Value GetFrontmostAppPid(const Napi::CallbackInfo& info) {
+  return Napi::Number::New(info.Env(), context_bridge::getFrontmostAppPid());
+}
+
 Napi::Value GetSelectedTextViaAccessibility(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  std::string text = context_bridge::getSelectedTextViaAccessibility();
+  int pid = 0;
+  if (info.Length() > 0 && info[0].IsNumber()) {
+    pid = info[0].As<Napi::Number>().Int32Value();
+  }
+  std::string text = context_bridge::getSelectedTextViaAccessibility(pid);
   if (text.empty()) {
     return env.Null();
   }
@@ -24,6 +32,8 @@ Napi::Value IsAccessibilityGranted(const Napi::CallbackInfo& info) {
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set("getFrontmostAppPid",
+              Napi::Function::New(env, GetFrontmostAppPid));
   exports.Set("getSelectedTextViaAccessibility",
               Napi::Function::New(env, GetSelectedTextViaAccessibility));
   exports.Set("simulateCopy",

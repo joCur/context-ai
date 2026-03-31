@@ -8,6 +8,7 @@ export const IPC = {
   PERMISSION_STATUS: 'permission:status',
   PERMISSION_REQUEST: 'permission:request',
   WINDOW_DISMISS: 'window:dismiss',
+  WINDOW_RESET: 'window:reset',
 } as const
 
 export interface SelectedText {

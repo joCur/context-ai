@@ -1,8 +1,8 @@
 import { app, BrowserWindow, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
-import { setupIPC, sendSelectedText, sendPermissionStatus } from './ipc'
+import { setupIPC, sendSelectedText, sendPermissionStatus, sendWindowReset } from './ipc'
 import { registerHotkey, unregisterHotkey } from './hotkey'
-import { initContextBridge, getSelectedText, checkAccessibilityPermission } from './context-bridge'
+import { initContextBridge, getSelectedText, getSourceAppPid, checkAccessibilityPermission } from './context-bridge'
 import type { NativeContextBridge } from './context-bridge'
 
 let promptWindow: BrowserWindow | null = null
@@ -38,6 +38,8 @@ function loadNativeAddon(): NativeContextBridge | null {
   }
 }
 
+let blurGuard = false
+
 function createPromptWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 560,
@@ -62,7 +64,9 @@ function createPromptWindow(): BrowserWindow {
   }
 
   window.on('blur', () => {
-    window.hide()
+    if (!blurGuard) {
+      window.hide()
+    }
   })
 
   return window
@@ -81,14 +85,19 @@ function checkAndSendPermissionStatus(prompt: boolean): void {
 async function onHotkeyPressed(): Promise<void> {
   if (!promptWindow) return
 
-  const result = await getSelectedText()
+  // Grab source app PID instantly (< 1ms), then show window
+  const sourcePid = getSourceAppPid()
 
+  blurGuard = true
+  sendWindowReset(promptWindow)
   promptWindow.show()
   promptWindow.focus()
+  setTimeout(() => { blurGuard = false }, 200)
 
-  // Check permission without prompting — just update the banner
   checkAndSendPermissionStatus(false)
 
+  // Capture text using saved PID (works even after our window has focus)
+  const result = await getSelectedText(sourcePid)
   if (result) {
     sendSelectedText(promptWindow, result.text, result.method)
   }

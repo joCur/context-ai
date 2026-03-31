@@ -8,7 +8,11 @@
 
 namespace context_bridge {
 
-std::string getSelectedTextViaAccessibility() {
+int getFrontmostAppPid() {
+  return 0;
+}
+
+std::string getSelectedTextViaAccessibility(int) {
   return "";
 }
 

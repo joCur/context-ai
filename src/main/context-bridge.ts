@@ -2,7 +2,8 @@ import { clipboard } from 'electron'
 import type { SelectedText } from '../shared/ipc'
 
 export interface NativeContextBridge {
-  getSelectedTextViaAccessibility(): string | null
+  getFrontmostAppPid(): number
+  getSelectedTextViaAccessibility(pid?: number): string | null
   simulateCopy(): void
   isAccessibilityGranted(prompt?: boolean): boolean
 }
@@ -15,10 +16,14 @@ export function initContextBridge(addon: NativeContextBridge | null): void {
   native = addon
 }
 
-export async function getSelectedText(): Promise<SelectedText | null> {
+export function getSourceAppPid(): number {
+  return native?.getFrontmostAppPid() ?? 0
+}
+
+export async function getSelectedText(pid = 0): Promise<SelectedText | null> {
   if (!native) return null
 
-  const text = native.getSelectedTextViaAccessibility()
+  const text = native.getSelectedTextViaAccessibility(pid || undefined)
   if (text && text.length > 0) {
     return { text, method: 'accessibility' }
   }

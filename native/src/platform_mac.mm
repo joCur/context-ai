@@ -4,39 +4,52 @@
 
 namespace context_bridge {
 
-std::string getSelectedTextViaAccessibility() {
-  @try {
+int getFrontmostAppPid() {
+  @autoreleasepool {
     NSRunningApplication* frontApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
-    if (!frontApp) return "";
+    return frontApp ? (int)[frontApp processIdentifier] : 0;
+  }
+}
 
-    pid_t pid = [frontApp processIdentifier];
-    AXUIElementRef appElement = AXUIElementCreateApplication(pid);
-    if (!appElement) return "";
+std::string getSelectedTextViaAccessibility(int pid) {
+  @try {
+    @autoreleasepool {
+      AXUIElementRef focusedElement = nullptr;
+      AXError error;
 
-    AXUIElementRef focusedElement = nullptr;
-    AXError error = AXUIElementCopyAttributeValue(
-      appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
-    CFRelease(appElement);
+      if (pid > 0) {
+        AXUIElementRef appElement = AXUIElementCreateApplication((pid_t)pid);
+        if (!appElement) return "";
+        error = AXUIElementCopyAttributeValue(
+          appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
+        CFRelease(appElement);
+      } else {
+        AXUIElementRef systemWide = AXUIElementCreateSystemWide();
+        error = AXUIElementCopyAttributeValue(
+          systemWide, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
+        CFRelease(systemWide);
+      }
 
-    if (error != kAXErrorSuccess || !focusedElement) return "";
+      if (error != kAXErrorSuccess || !focusedElement) return "";
 
-    CFTypeRef selectedText = nullptr;
-    error = AXUIElementCopyAttributeValue(
-      focusedElement, kAXSelectedTextAttribute, &selectedText);
-    CFRelease(focusedElement);
+      CFTypeRef selectedText = nullptr;
+      error = AXUIElementCopyAttributeValue(
+        focusedElement, kAXSelectedTextAttribute, &selectedText);
+      CFRelease(focusedElement);
 
-    if (error != kAXErrorSuccess || !selectedText) return "";
+      if (error != kAXErrorSuccess || !selectedText) return "";
 
-    if (CFGetTypeID(selectedText) != CFStringGetTypeID()) {
+      if (CFGetTypeID(selectedText) != CFStringGetTypeID()) {
+        CFRelease(selectedText);
+        return "";
+      }
+
+      NSString* nsText = (__bridge NSString*)selectedText;
+      std::string result = [nsText UTF8String] ?: "";
       CFRelease(selectedText);
-      return "";
+
+      return result;
     }
-
-    NSString* nsText = (__bridge NSString*)selectedText;
-    std::string result = [nsText UTF8String] ?: "";
-    CFRelease(selectedText);
-
-    return result;
   } @catch (NSException*) {
     return "";
   }

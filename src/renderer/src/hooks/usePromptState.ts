@@ -110,6 +110,7 @@ export function usePromptState() {
 
   useEffect(() => {
     const unsubs = [
+      window.api.onWindowReset(() => dispatch({ type: 'DISMISS' })),
       window.api.onSelectedText((data) => dispatch({ type: 'CONTEXT_RECEIVED', text: data.text })),
       window.api.onStreamToken((data) => dispatch({ type: 'STREAM_TOKEN', content: data.content })),
       window.api.onStreamDone(() => dispatch({ type: 'STREAM_DONE' })),
