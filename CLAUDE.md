@@ -106,6 +106,17 @@ docs/             # PLAN.md design spec
 - **Releases**: release-please automation on main → opens changelog PR → merge triggers build + publish to GitHub Releases
 - Current version: `0.1.0`
 
+## Browser Automation
+
+Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
+
+Core workflow:
+
+1. `agent-browser open <url>` — Navigate to page
+2. `agent-browser snapshot -i` — Get interactive elements with refs (`@e1`, `@e2`)
+3. `agent-browser click @e1` / `agent-browser fill @e2 "text"` — Interact using refs
+4. Re-snapshot after any page change
+
 ## Git Worktrees
 
 Worktrees go in `.worktrees/` (already gitignored). Symlink `.env*` files from repo root into new worktrees.
