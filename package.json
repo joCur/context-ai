@@ -1,6 +1,6 @@
 {
   "name": "context-ai",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "System tray desktop app for AI-assisted text operations via global hotkey",
   "main": "./out/main/index.js",
   "scripts": {
