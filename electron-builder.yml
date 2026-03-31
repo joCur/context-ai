@@ -10,6 +10,10 @@ files:
   - out/**/*
   - native/build/Release/*.node
 
+asar: true
+asarUnpack:
+  - "**/*.node"
+
 extraResources:
   - from: resources/icon.png
     to: icon.png
@@ -22,15 +26,13 @@ mac:
   target:
     - target: dmg
       arch:
-        - universal
+        - x64
+        - arm64
   icon: resources/icon.icns
   category: public.app-category.productivity
-  hardenedRuntime: true
-  entitlements: build/entitlements.mac.plist
-  entitlementsInherit: build/entitlements.mac.plist
 
 dmg:
-  artifactName: Context-AI-${version}-mac.${ext}
+  artifactName: Context-AI-${version}-mac-${arch}.${ext}
 
 win:
   target:

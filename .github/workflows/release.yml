@@ -24,6 +24,7 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
@@ -56,10 +57,7 @@ jobs:
       - name: Build Electron app
         run: npm run build
 
-      - name: Package
+      - name: Package and publish
         run: npx electron-builder --${{ matrix.platform }} --config electron-builder.yml --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
-          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CERTIFICATE && 'true' || 'false' }}
