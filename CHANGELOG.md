@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/joCur/context-ai/compare/v1.0.0...v1.0.1) (2026-03-31)
+
+
+### Bug Fixes
+
+* skip code signing when no certificate configured ([#50](https://github.com/joCur/context-ai/issues/50)) ([15b1d14](https://github.com/joCur/context-ai/commit/15b1d14162090d0fd9ae10622ed68945cf4d3698))
+
 ## 1.0.0 (2026-03-31)
 
 
