@@ -10,27 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:native": "cd native && node-gyp rebuild",
-    "rebuild:native": "cd native && node-gyp rebuild"
-  },
-  "build": {
-    "appId": "com.context-ai.app",
-    "productName": "Context AI",
-    "icon": "resources/icon.png",
-    "mac": {
-      "icon": "resources/icon.icns"
-    },
-    "win": {
-      "icon": "resources/icon.ico"
-    },
-    "linux": {
-      "icon": "resources/icon.png"
-    },
-    "extraResources": [
-      {
-        "from": "resources/icon.png",
-        "to": "icon.png"
-      }
-    ]
+    "rebuild:native": "cd native && node-gyp rebuild",
+    "package": "npm run build && electron-builder --config electron-builder.yml",
+    "package:mac": "npm run build && electron-builder --mac --config electron-builder.yml",
+    "package:win": "npm run build && electron-builder --win --config electron-builder.yml"
   },
   "license": "UNLICENSED",
   "private": true,
@@ -51,6 +34,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@vitejs/plugin-react": "^5.2.0",
     "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
     "node-addon-api": "^8.7.0",
     "tailwindcss": "^4.2.2",

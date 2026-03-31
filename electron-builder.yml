@@ -1,0 +1,50 @@
+appId: com.context-ai.app
+productName: Context AI
+icon: resources/icon.png
+
+directories:
+  buildResources: resources
+  output: dist
+
+files:
+  - out/**/*
+  - native/build/Release/*.node
+
+extraResources:
+  - from: resources/icon.png
+    to: icon.png
+  - from: resources/trayTemplate.png
+    to: trayTemplate.png
+  - from: resources/trayTemplate@1x.png
+    to: trayTemplate@1x.png
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - universal
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+dmg:
+  artifactName: Context-AI-${version}-mac.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: Context-AI-${version}-win-setup.${ext}
+
+publish:
+  provider: github
+  owner: joCur
+  repo: context-ai
